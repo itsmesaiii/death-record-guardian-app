@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Check, HomeFill, Plus } from "lucide-react";
+import { AlertCircle, Check, Home, Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 
 const SubmissionConfirmation = () => {
@@ -65,7 +65,7 @@ const SubmissionConfirmation = () => {
                 className="w-full bg-vao-primary hover:bg-vao-secondary"
                 onClick={() => navigate("/dashboard")}
               >
-                <HomeFill className="mr-2 h-4 w-4" />
+                <Home className="mr-2 h-4 w-4" />
                 Return to Dashboard
               </Button>
               
