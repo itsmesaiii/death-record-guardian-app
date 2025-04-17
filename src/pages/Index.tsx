@@ -1,11 +1,28 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { LoginForm } from "@/components/auth/LoginForm";
 
 const Index = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const user = localStorage.getItem("vao_user");
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-vao-light p-4">
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center space-y-2 mb-6">
+          <h1 className="text-3xl font-bold text-vao-primary">VAO Mobile App</h1>
+          <p className="text-vao-gray">Death Record Management System</p>
+        </div>
+        
+        <LoginForm />
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// VAO App custom colors
+				vao: {
+					primary: '#7E69AB',
+					secondary: '#6E59A5',
+					accent: '#9b87f5',
+					light: '#E5DEFF',
+					dark: '#1A1F2C',
+					success: '#4CAF50',
+					warning: '#FFC107',
+					error: '#F44336',
+					gray: '#8E9196',
+					'light-gray': '#F1F0FB',
 				}
 			},
 			borderRadius: {
