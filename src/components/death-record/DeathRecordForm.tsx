@@ -1,8 +1,10 @@
+// src/components/death-record/DeathRecordForm.tsx
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { FormField } from "./FormField";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -15,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { api } from "@/lib/api";
 
 interface FormData {
   fullName: string;
@@ -38,73 +41,68 @@ export function DeathRecordForm() {
     dateOfDeath: undefined,
     pdfFile: null,
   });
-  
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateForm = () => {
     const errors: FormErrors = {};
-    
     if (!formData.fullName.trim()) {
       errors.fullName = "Full name is required";
     }
-    
-    if (formData.aadhaarNumber && !/^\d{12}$/.test(formData.aadhaarNumber)) {
+    if (!formData.aadhaarNumber) {
+      errors.aadhaarNumber = "Aadhaar number is required";
+    } else if (!/^\d{12}$/.test(formData.aadhaarNumber)) {
       errors.aadhaarNumber = "Aadhaar number must be 12 digits";
     }
-    
     if (!formData.dateOfDeath) {
       errors.dateOfDeath = "Date of death is required";
     }
-    
     if (!formData.pdfFile) {
-      errors.pdfFile = "Form 2 PDF is required";
+      errors.pdfFile = "Form 2 PDF is required";
     }
-    
     return errors;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     const errors = validateForm();
     setFormErrors(errors);
-    
+
     if (Object.keys(errors).length === 0) {
       setIsSubmitting(true);
-      
-      // Simulate API call with delay
-      setTimeout(() => {
-        // Check if Aadhaar number matches a beneficiary
-        // For demo purposes: Aadhaar numbers starting with '12' will match
-        const isMatch = formData.aadhaarNumber.startsWith("12");
-        
-        // Prepare data for demonstration
-        const submissionData = {
-          ...formData,
-          dateOfDeath: formData.dateOfDeath ? format(formData.dateOfDeath, "yyyy-MM-dd") : "",
-          pdfFilename: formData.pdfFile?.name,
-          isMatch,
-          submissionDate: new Date().toISOString(),
-          id: Date.now().toString(),
-        };
-        
-        // Save to localStorage for history demonstration
-        const history = JSON.parse(localStorage.getItem("vao_submissions") || "[]");
-        history.unshift(submissionData);
-        localStorage.setItem("vao_submissions", JSON.stringify(history));
-        
-        // Navigate to confirmation page with result
-        navigate("/submission-confirmation", { 
-          state: { 
-            isMatch,
-            recordId: submissionData.id,
-            name: formData.fullName 
-          } 
+
+      try {
+        // Retrieve the logged‑in VAO's username
+        const stored = localStorage.getItem("vao_user");
+        const vao = stored ? JSON.parse(stored) : { username: "unknown" };
+
+        // Build multipart payload
+        const formPayload = new FormData();
+        formPayload.append("name", formData.fullName);
+        formPayload.append("aadhaarNumber", formData.aadhaarNumber);
+        formPayload.append("dateOfDeath", formData.dateOfDeath!.toISOString());
+        formPayload.append("proofFile", formData.pdfFile!);
+        // Include specific VAO username in source
+        formPayload.append("source", `VAO - ${vao.username}`);
+
+        await api.post("/death-records", formPayload, {
+          headers: { "Content-Type": "multipart/form-data" },
         });
-        
+
+        toast.success("Record submitted successfully");
+        navigate("/submission-confirmation", {
+          state: {
+            isMatch: formData.aadhaarNumber.startsWith("12"),
+            recordId: null,
+            name: formData.fullName,
+          },
+        });
+      } catch (err) {
+        console.error(err);
+        toast.error("Submission failed. Please try again.");
+      } finally {
         setIsSubmitting(false);
-      }, 1500);
+      }
     } else {
       toast.error("Please fix the errors in the form.");
     }
@@ -119,17 +117,9 @@ export function DeathRecordForm() {
       });
       return;
     }
-    
-    setFormData({
-      ...formData,
-      pdfFile: file,
-    });
-    
+    setFormData({ ...formData, pdfFile: file });
     if (formErrors.pdfFile) {
-      setFormErrors({
-        ...formErrors,
-        pdfFile: undefined,
-      });
+      setFormErrors({ ...formErrors, pdfFile: undefined });
     }
   };
 
@@ -137,47 +127,63 @@ export function DeathRecordForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardContent className="pt-6 space-y-4">
+          {/* Full Name */}
           <FormField
             id="fullName"
-            label="Full Name of Deceased"
-            placeholder="Enter full name"
+            label="Full Name of Deceased / மரணமடைந்தோரின் முழு பெயர்"
+            placeholder="Name / பெயர்"
             value={formData.fullName}
-            onChange={(value) => setFormData({ ...formData, fullName: value })}
+            onChange={(v) => setFormData({ ...formData, fullName: v })}
             error={formErrors.fullName}
             required
           />
-          
-          <FormField
-            id="aadhaarNumber"
-            label="Aadhaar Number"
-            placeholder="Enter 12-digit Aadhaar number or leave blank"
-            value={formData.aadhaarNumber}
-            onChange={(value) => {
-              // Only allow digits
-              if (/^\d*$/.test(value) && value.length <= 12) {
-                setFormData({ ...formData, aadhaarNumber: value });
-                
-                if (formErrors.aadhaarNumber && /^\d{12}$/.test(value)) {
-                  setFormErrors({
-                    ...formErrors,
-                    aadhaarNumber: undefined,
-                  });
-                }
-              }
-            }}
-            error={formErrors.aadhaarNumber}
-            pattern="\d{12}"
-          />
-          
+
+          {/* Aadhaar Number */}
           <div className="space-y-2">
-            <Label htmlFor="dateOfDeath" className={cn(formErrors.dateOfDeath && "text-destructive")}>
-              Date of Death <span className="text-destructive">*</span>
+            <Label
+              htmlFor="aadhaarNumber"
+              className={cn(formErrors.aadhaarNumber && "text-destructive")}
+            >
+              Enter 12-digit Aadhaar Number <span className="text-destructive">*</span>
+              <br />
+              <span className="text-sm">12 இலக்க ஆதார் எண்ணை உள்ளிடவும்.</span>
+            </Label>
+            <Input
+              id="aadhaarNumber"
+              type="text"
+              placeholder="Aadhaar number / ஆதார் எண்"
+              className={cn(formErrors.aadhaarNumber && "border-destructive")}
+              value={formData.aadhaarNumber}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (/^\d*$/.test(v) && v.length <= 12) {
+                  setFormData({ ...formData, aadhaarNumber: v });
+                  if (formErrors.aadhaarNumber && /^\d{12}$/.test(v)) {
+                    setFormErrors({ ...formErrors, aadhaarNumber: undefined });
+                  }
+                }
+              }}
+              required
+              pattern="\d{12}"
+            />
+            {formErrors.aadhaarNumber && (
+              <p className="text-xs text-destructive">{formErrors.aadhaarNumber}</p>
+            )}
+          </div>
+
+          {/* Date of Death */}
+          <div className="space-y-2">
+            <Label
+              htmlFor="dateOfDeath"
+              className={cn(formErrors.dateOfDeath && "text-destructive")}
+            >
+              Date of Death / இறப்பு தேதி <span className="text-destructive">*</span>
             </Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   id="dateOfDeath"
-                  variant={"outline"}
+                  variant="outline"
                   className={cn(
                     "w-full justify-start text-left font-normal",
                     !formData.dateOfDeath && "text-muted-foreground",
@@ -185,7 +191,9 @@ export function DeathRecordForm() {
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.dateOfDeath ? format(formData.dateOfDeath, "PPP") : <span>Select date</span>}
+                  {formData.dateOfDeath
+                    ? format(formData.dateOfDeath, "PPP")
+                    : <span>Select date / தேதியைத் தேர்ந்தெடுக்கவும்</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
@@ -195,10 +203,7 @@ export function DeathRecordForm() {
                   onSelect={(date) => {
                     setFormData({ ...formData, dateOfDeath: date || undefined });
                     if (formErrors.dateOfDeath && date) {
-                      setFormErrors({
-                        ...formErrors,
-                        dateOfDeath: undefined,
-                      });
+                      setFormErrors({ ...formErrors, dateOfDeath: undefined });
                     }
                   }}
                   disabled={(date) => date > new Date()}
@@ -207,15 +212,25 @@ export function DeathRecordForm() {
                 />
               </PopoverContent>
             </Popover>
-            {formErrors.dateOfDeath && <p className="text-xs text-destructive">{formErrors.dateOfDeath}</p>}
+            {formErrors.dateOfDeath && (
+              <p className="text-xs text-destructive">{formErrors.dateOfDeath}</p>
+            )}
           </div>
-          
+
+          {/* PDF Upload */}
           <div className="space-y-2">
-            <Label htmlFor="pdfUpload" className={cn(formErrors.pdfFile && "text-destructive")}>
-              Upload Form 2 PDF <span className="text-destructive">*</span>
+            <Label
+              htmlFor="pdfUpload"
+              className={cn(formErrors.pdfFile && "text-destructive")}
+            >
+              Upload Form 2 PDF / படிவம் 2 PDF பதிவேற்றவும் <span className="text-destructive">*</span>
             </Label>
-            <div className={cn("border-2 border-dashed rounded-md p-6 text-center hover:bg-muted/50 transition-colors",
-                            formErrors.pdfFile && "border-destructive")}>
+            <div
+              className={cn(
+                "border-2 border-dashed rounded-md p-6 text-center hover:bg-muted/50 transition-colors",
+                formErrors.pdfFile && "border-destructive"
+              )}
+            >
               <input
                 id="pdfUpload"
                 type="file"
@@ -227,30 +242,40 @@ export function DeathRecordForm() {
                 <div className="flex flex-col items-center gap-2">
                   <Upload className="h-8 w-8 text-muted-foreground" />
                   {formData.pdfFile ? (
-                    <div className="text-sm">
-                      <span className="font-semibold">{formData.pdfFile.name}</span> 
-                      <p className="text-muted-foreground">Click to change file</p>
-                    </div>
+                    <>
+                      <span className="font-semibold">{formData.pdfFile.name}</span>
+                      <p className="text-sm">
+                        Click to change file / கோப்பை மாற்ற கிளிக் செய்யவும்
+                      </p>
+                    </>
                   ) : (
-                    <div className="text-sm">
-                      <span className="font-semibold">Click to upload PDF</span>
-                      <p className="text-muted-foreground">Form 2 document required</p>
-                    </div>
+                    <>
+                      <span className="font-semibold">
+                        Click to upload PDF / PDF பதிவேற்ற கிளிக் செய்யவும்
+                      </span>
+                      <p className="text-sm">
+                        Form 2 document required / படிவம் 2 ஆவணம் தேவையானது
+                      </p>
+                    </>
                   )}
                 </div>
               </label>
             </div>
-            {formErrors.pdfFile && <p className="text-xs text-destructive">{formErrors.pdfFile}</p>}
+            {formErrors.pdfFile && (
+              <p className="text-xs text-destructive">{formErrors.pdfFile}</p>
+            )}
           </div>
         </CardContent>
       </Card>
-      
-      <Button 
-        type="submit" 
+
+      <Button
+        type="submit"
         className="w-full bg-vao-primary hover:bg-vao-secondary text-white"
         disabled={isSubmitting}
       >
-        {isSubmitting ? "Submitting..." : "Submit Death Record"}
+        {isSubmitting
+          ? "Submitting... / சமர்ப்பிக்கப்படுகிறது..."
+          : "Submit Death Record / மரண பதிவு சமர்ப்பிக்கவும்"}
       </Button>
     </form>
   );

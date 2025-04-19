@@ -24,14 +24,15 @@ const SubmissionHistory = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="font-bold text-xl ml-2">Submission History</h1>
+            <h1 className="font-bold text-xl ml-2">Submission History / சமர்ப்பிப்பு வரலாறு</h1>
           </div>
         </div>
       </header>
       
-      <main className="container max-w-md mx-auto p-4 py-6">
+      <main className="container max-w-4xl mx-auto p-4 py-6">
         <div className="mb-6">
           <p className="text-muted-foreground">View all your previous death record submissions and their status.</p>
+          <p className="text-muted-foreground">உங்கள் முந்தைய இறப்பு பதிவு சமர்ப்பிப்புகள் மற்றும் அவற்றின் நிலையைப் பார்க்கவும்.</p>
         </div>
         
         <History />

@@ -16,7 +16,7 @@ export function ActionButton({ to, className, variant = "default", children }: A
       asChild
       variant={variant}
       size="lg"
-      className={cn("h-16 text-lg shadow-md", className)}
+      className={cn("text-lg shadow-md", className)}
     >
       <Link to={to}>{children}</Link>
     </Button>

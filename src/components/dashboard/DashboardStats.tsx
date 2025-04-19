@@ -39,30 +39,30 @@ export function DashboardStats() {
   return (
     <div className="grid grid-cols-2 gap-4">
       <StatCard
-        title="This Month"
+        title="This Month / இந்த மாதம்"
         value="12"
         description={`Reports in ${currentMonth}`}
         icon={FilePenLine}
         color="bg-vao-primary"
       />
       <StatCard
-        title="Pending"
+        title="Pending / நிலுவையில்"
         value="3"
-        description="Under review"
+        description="Under review / மதிப்பாய்வில் உள்ளது"
         icon={FileClock}
         color="bg-yellow-500"
       />
       <StatCard
-        title="Matches"
+        title="Matches / இணைப்புகள்"
         value="8"
-        description="Beneficiary matches"
+        description="Beneficiary matches /  பயனாளர் இணைப்புகள்"
         icon={FileCheck}
         color="bg-green-500"
       />
       <StatCard
-        title="Total"
+        title="Total / மொத்தம்"
         value="124"
-        description="All time records"
+        description="All time records / மொத்த பதிவுகள்"
         icon={FileText}
         color="bg-blue-500"
       />

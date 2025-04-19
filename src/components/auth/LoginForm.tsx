@@ -1,3 +1,4 @@
+// src/components/auth/LoginForm.tsx
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -18,35 +19,50 @@ export function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate authentication
+    // 1) Load the accounts from localStorage
+    const saved = localStorage.getItem("vao_accounts") || "[]";
+    const accounts: { username: string; password: string }[] = JSON.parse(saved);
+
+    // 2) Try to find a match
+    const candidateUser = username.trim().toLowerCase();
+    const candidatePass = password.trim().toLowerCase();
+    const found = accounts.find(
+    (acc) =>
+           acc.username.toLowerCase() === candidateUser &&
+          acc.password.toLowerCase() === candidatePass
+       );
+
+    // 3) Simulate an API delay
     setTimeout(() => {
-      // In a real app, you'd verify these credentials with a backend
-      if (username === "vao_demo" && password === "password") {
-        // Store user info in localStorage or context
-        localStorage.setItem("vao_user", JSON.stringify({ name: "Demo VAO Officer", username }));
+      if (found) {
+        // Successful login
+        localStorage.setItem(
+          "vao_user",
+          JSON.stringify({ name: found.username, username: found.username })
+        );
         toast.success("Login successful!");
         navigate("/dashboard");
       } else {
         toast.error("Invalid credentials. Please try again.");
       }
       setIsLoading(false);
-    }, 1000);
+    }, 800);
   };
 
   return (
     <Card className="w-full">
       <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl font-bold">VAO Login</CardTitle>
+        <CardTitle className="text-2xl font-bold">VAO Login / VAO உள்நுழைவு </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username">Username /  பெயர்</Label>
             <div className="relative">
               <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 id="username"
-                placeholder="vao_demo"
+                placeholder="Enter username / பெயரை உள்ளிடவும்"
                 className="pl-9"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -54,15 +70,15 @@ export function LoginForm() {
               />
             </div>
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Password / கடவுச்சொல்</Label>
             <div className="relative">
               <LockKeyhole className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 id="password"
                 type="password"
-                placeholder="password"
+                placeholder="Enter password / கடவுச்சொல்லை உள்ளிடவும்"
                 className="pl-9"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -70,16 +86,14 @@ export function LoginForm() {
               />
             </div>
           </div>
-          
-          <Button type="submit" className="w-full bg-vao-primary hover:bg-vao-secondary" disabled={isLoading}>
-            {isLoading ? "Logging in..." : "Login"}
+
+          <Button
+            type="submit"
+            className="w-full bg-vao-primary hover:bg-vao-secondary text-white py-3"
+            disabled={isLoading}
+          >
+            {isLoading ? "Logging in..." : "Login / உள்நுழைய"}
           </Button>
-          
-          <div className="text-center text-sm text-muted-foreground mt-2">
-            <p>Demo credentials:</p>
-            <p>Username: vao_demo</p>
-            <p>Password: password</p>
-          </div>
         </form>
       </CardContent>
     </Card>
