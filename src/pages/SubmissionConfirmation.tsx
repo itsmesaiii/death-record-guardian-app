@@ -62,18 +62,18 @@ const SubmissionConfirmation = () => {
               <CardDescription className="text-base">
                 {isMatch ? (
                   <>
-                    The death record for <span className="font-medium">{name}</span> was matched to an existing beneficiary and forwarded for administrative verification.
+                    Death record for <span className="font-medium">{name}</span> has been submitted successfully.
                   </>
                 ) : (
                   <>
-                    Death record for <span className="font-medium">{name}</span> has been saved successfully. No beneficiary match was found.
+                    Death record for <span className="font-medium">{name}</span> has been submitted successfully.
                   </>
                 )}
               </CardDescription>
               <p className="text-sm italic text-muted-foreground">
                 {isMatch
-                  ? `${name} உடன் மரண பதிவு பயனாளியுடன் இணைப்பு கண்டறியப்பட்டு சரிபார்ப்புக்காக நிர்வாகிக்கு அனுப்பப்பட்டது.`
-                  : `${name} இறப்பு பதிவு வெற்றிகரமாக சேமிக்கப்பட்டது. பயனாளி பொருத்தம் எதுவும் கிடைக்கவில்லை.`}
+                  ? `${name} இறப்பு பதிவு வெற்றிகரமாக சேமிக்கப்பட்டது.`
+                  : `${name} இறப்பு பதிவு வெற்றிகரமாக சேமிக்கப்பட்டது.`}
               </p>
             </div>
           </div>

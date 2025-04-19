@@ -10,7 +10,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Download } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -51,16 +50,11 @@ export function SubmissionHistory() {
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString("en-GB");
 
-  // ← NEW: anchor‑based download
   const handleDownload = (fullPath: string) => {
-    // Extract the actual filename from whatever was stored
     const filename = fullPath.split(/[\\/]/).pop();
     if (!filename) return;
-  
-    // Construct the URL to your static uploads route
+
     const url = `http://localhost:3001/uploads/${filename}`;
-  
-    // Trigger an "a.download" to force download
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;
@@ -102,7 +96,6 @@ export function SubmissionHistory() {
               <TableHead>Date Uploaded / பதிவேற்றம்</TableHead>
               <TableHead>Name / பெயர்</TableHead>
               <TableHead>Aadhaar / ஆதார் எண்</TableHead>
-              <TableHead>Status / நிலை</TableHead>
               <TableHead className="text-right">Document / ஆவணம்</TableHead>
             </TableRow>
           </TableHeader>
@@ -114,18 +107,6 @@ export function SubmissionHistory() {
                 <TableCell>{item.name}</TableCell>
                 <TableCell className="whitespace-nowrap">
                   {item.aadhaarNumber}
-                </TableCell>
-                <TableCell>
-                  {item.isMatch ? (
-                    <Badge className="bg-green-500">Matched</Badge>
-                  ) : (
-                    <Badge
-                      variant="outline"
-                      className="text-vao-gray border-vao-gray"
-                    >
-                      Not Matched
-                    </Badge>
-                  )}
                 </TableCell>
                 <TableCell className="text-right">
                   <button
